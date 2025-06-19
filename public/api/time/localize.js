@@ -1,4 +1,3 @@
-import { getAccurateTime } from '../../../utils/timeUtils.js';
 import { json } from '../../../utils/response.js';
 import { getClientTimezoneFromRequest } from '../../../utils/geoUtils.js';
 

@@ -1,5 +1,8 @@
 import { getAssetFromKV } from '@cloudflare/kv-asset-handler';
 
+// Import the generated route manifest
+import ROUTES from './api-routes.js';
+
 function parseCookies(cookieHeader) {
   const cookies = {};
   if (!cookieHeader) return cookies;
@@ -119,23 +122,35 @@ async function handleAPIRequest(request, env) {
   const url = new URL(request.url);
   const apiPath = url.pathname.replace(/^\/api\//, '');
 
-  try {
-    const module = await import(`./public/api/${apiPath}.js`);
-    const resp = await module.default(request, env);
-    if (rl.setCookie) resp.headers.append('Set-Cookie', rl.setCookie);
-    return resp;
-  } catch {
+  // Lookup route module from manifest
+  const routeModule = ROUTES[apiPath];
+  if (routeModule) {
     try {
-      const assetRequest = new Request(url.origin + `/api/${apiPath}.json`, request);
-      const staticResp = await getAssetFromKV({ request: assetRequest, waitUntil: () => {} }, {});
-      if (rl.setCookie) staticResp.headers.append('Set-Cookie', rl.setCookie);
-      staticResp.headers.set('Content-Type', 'application/json');
-      return staticResp;
-    } catch {
-      const res404 = new Response('API route not found', { status: 404 });
-      if (rl.setCookie) res404.headers.append('Set-Cookie', rl.setCookie);
-      return res404;
+      // Since these are static imports, routeModule is a string path we imported statically in generateRoutes
+      // Import all route handlers at top-level in worker or via an object here:
+      // We'll import all at the top in generateRoutes script and export them in api-routes.json
+
+      // The routeModule here is the module object itself (imported statically in generated code)
+      // so let's assume the manifest maps apiPath => module object
+
+      const resp = await routeModule.default(request, env);
+      if (rl.setCookie) resp.headers.append('Set-Cookie', rl.setCookie);
+      return resp;
+    } catch (e) {
+      // fallthrough to static asset fallback
     }
+  }
+
+  try {
+    const assetRequest = new Request(url.origin + `/api/${apiPath}.json`, request);
+    const staticResp = await getAssetFromKV({ request: assetRequest, waitUntil: () => {} }, {});
+    if (rl.setCookie) staticResp.headers.append('Set-Cookie', rl.setCookie);
+    staticResp.headers.set('Content-Type', 'application/json');
+    return staticResp;
+  } catch {
+    const res404 = new Response('API route not found', { status: 404 });
+    if (rl.setCookie) res404.headers.append('Set-Cookie', rl.setCookie);
+    return res404;
   }
 }
 
