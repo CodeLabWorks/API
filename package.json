@@ -1,0 +1,18 @@
+{
+  "name": "my-worker-project",
+  "version": "1.0.0",
+  "description": "Cloudflare Worker with cookie-based rate limiting, dynamic API handlers, and static asset serving",
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev",
+    "publish": "wrangler publish"
+  },
+  "dependencies": {
+    "@cloudflare/kv-asset-handler": "^0.4.0",
+    "luxon": "^3.6.1",
+		"tz-lookup": "^6.1.25"
+  },
+  "devDependencies": {
+    "wrangler": "^4.20.1"
+  }
+}

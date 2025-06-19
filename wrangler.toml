@@ -1,0 +1,12 @@
+name = "my-worker-project"
+compatibility_date = "2025-06-19"
+
+main = "worker.js"
+
+[site]
+bucket = "./public"
+
+[vars]
+RATE_LIMIT_WINDOW_MS = "60000"
+RATE_LIMIT_TOKENS = "100"
+RATE_LIMIT_WINDOW = "100"
