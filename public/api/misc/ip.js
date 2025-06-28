@@ -1,8 +1,9 @@
-import geoip from 'geoip-lite';
+import geoip from 'geoip-lite2';
 
 export default async function (request) {
   const url = new URL(request.url);
   const parts = url.pathname.split('/').filter(Boolean);
+  // expects path like /ip/1.1.1.1
   const ip = parts[1];
 
   if (!ip) {
@@ -21,7 +22,6 @@ export default async function (request) {
         { status: 404, headers: { 'Content-Type': 'application/json' } }
       );
     }
-
 
     return new Response(
       JSON.stringify({ ip, geo }, null, 2),
